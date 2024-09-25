@@ -1,7 +1,7 @@
 #include "MeshComponentRuntimeUtils.h"
 
-#include "DynamicMeshAttributeSet.h"
-#include "MeshNormals.h"
+#include "DynamicMesh/DynamicMeshAttributeSet.h"
+#include "DynamicMesh/MeshNormals.h"
 
 #include "DynamicMeshToMeshDescription.h"
 #include "StaticMeshAttributes.h"
@@ -13,7 +13,7 @@
 
 void RTGUtils::UpdateStaticMeshFromDynamicMesh(
 	UStaticMesh* StaticMesh,
-	const FDynamicMesh3* Mesh)
+	const UE::Geometry::FDynamicMesh3* Mesh)
 {
 	FMeshDescription MeshDescription;
 	FStaticMeshAttributes StaticMeshAttributes(MeshDescription);
@@ -39,7 +39,7 @@ void RTGUtils::UpdateStaticMeshFromDynamicMesh(
 
 void RTGUtils::UpdatePMCFromDynamicMesh_SplitTriangles(
 	UProceduralMeshComponent* Component, 
-	const FDynamicMesh3* Mesh,
+	const UE::Geometry::FDynamicMesh3* Mesh,
 	bool bUseFaceNormals,
 	bool bInitializeUV0,
 	bool bInitializePerVertexColors,
@@ -54,9 +54,9 @@ void RTGUtils::UpdatePMCFromDynamicMesh_SplitTriangles(
 	Vertices.SetNumUninitialized(NumVertices);
 	Normals.SetNumUninitialized(NumVertices);
 
-	FMeshNormals PerVertexNormals(Mesh);
+	UE::Geometry::FMeshNormals PerVertexNormals(Mesh);
 	bool bUsePerVertexNormals = false;
-	const FDynamicMeshNormalOverlay* NormalOverlay = nullptr;
+	const UE::Geometry::FDynamicMeshNormalOverlay* NormalOverlay = nullptr;
 	if (Mesh->HasAttributes() == false && bUseFaceNormals == false)
 	{
 		PerVertexNormals.ComputeVertexNormals();
@@ -67,7 +67,7 @@ void RTGUtils::UpdatePMCFromDynamicMesh_SplitTriangles(
 		NormalOverlay = Mesh->Attributes()->PrimaryNormals();
 	}
 
-	const FDynamicMeshUVOverlay* UVOverlay = (Mesh->HasAttributes()) ? Mesh->Attributes()->PrimaryUV() : nullptr;
+	const UE::Geometry::FDynamicMeshUVOverlay* UVOverlay = (Mesh->HasAttributes()) ? Mesh->Attributes()->PrimaryUV() : nullptr;
 	TArray<FVector2D> UV0;
 	if (UVOverlay && bInitializeUV0)
 	{
@@ -95,7 +95,7 @@ void RTGUtils::UpdatePMCFromDynamicMesh_SplitTriangles(
 	{
 		int32 k = 3 * (BufferIndex++);
 
-		FIndex3i TriVerts = Mesh->GetTriangle(tid);
+		UE::Geometry::FIndex3i TriVerts = Mesh->GetTriangle(tid);
 
 		Mesh->GetTriVertices(tid, Position[0], Position[1], Position[2]);
 		Vertices[k] = (FVector)Position[0];

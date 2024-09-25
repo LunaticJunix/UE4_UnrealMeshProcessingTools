@@ -14,9 +14,9 @@ public class RuntimeGeometryDemo : ModuleRules
 				"CoreUObject", 
 				"Engine", 
 				"InputCore", 
-				"HeadMountedDisplay",
+				//"XRBase",		// Disable HMD module. Module error occurs when loading project.
 				"ProceduralMeshComponent",
-				"GeometricObjects",
+				"GeometryCore",
 				"DynamicMesh",
 				"RuntimeGeometryUtils",
 				"ModelingComponents"

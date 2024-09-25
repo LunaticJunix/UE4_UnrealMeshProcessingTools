@@ -1,11 +1,11 @@
 #include "DynamicMeshOBJReader.h"
-#include "DynamicMeshAttributeSet.h"
+#include "DynamicMesh/DynamicMeshAttributeSet.h"
 #include "tinyobj/tiny_obj_loader.h"
 
 
 bool RTGUtils::ReadOBJMesh(
 	const FString& Path,
-	FDynamicMesh3& MeshOut,
+	UE::Geometry::FDynamicMesh3& MeshOut,
 	bool bNormals,
 	bool bTexCoords,
 	bool bVertexColors,
@@ -61,8 +61,8 @@ bool RTGUtils::ReadOBJMesh(
 	{
 		MeshOut.EnableAttributes();
 	}
-	FDynamicMeshNormalOverlay* Normals = (bNormals) ? MeshOut.Attributes()->PrimaryNormals() : nullptr;
-	FDynamicMeshUVOverlay* UVs = (bTexCoords) ? MeshOut.Attributes()->PrimaryUV() : nullptr;
+	UE::Geometry::FDynamicMeshNormalOverlay* Normals = (bNormals) ? MeshOut.Attributes()->PrimaryNormals() : nullptr;
+	UE::Geometry::FDynamicMeshUVOverlay* UVs = (bTexCoords) ? MeshOut.Attributes()->PrimaryUV() : nullptr;
 	if (Normals)
 	{
 		for (size_t ni = 0; ni < attrib.normals.size() / 3; ++ni)
@@ -92,16 +92,16 @@ bool RTGUtils::ReadOBJMesh(
 		for (size_t f = 0; f < shapes[s].mesh.num_face_vertices.size(); f++) {	// Loop over faces(polygon)
 			int fv = shapes[s].mesh.num_face_vertices[f];
 
-			TArray<FIndex3i> Triangles;
+			TArray<UE::Geometry::FIndex3i> Triangles;
 			for (size_t v = 1; v < fv - 1; v++)
 			{
-				Triangles.Add(FIndex3i(0, v, v + 1));
+				Triangles.Add(UE::Geometry::FIndex3i(0, v, v + 1));
 			}
 
 			int32 NumTris = Triangles.Num();
 			for (int32 ti = 0; ti < NumTris; ++ti)
 			{
-				FIndex3i TriVerts = Triangles[ti];
+				UE::Geometry::FIndex3i TriVerts = Triangles[ti];
 				tinyobj::index_t idx0 = shapes[s].mesh.indices[index_offset + TriVerts.A];
 				tinyobj::index_t idx1 = shapes[s].mesh.indices[index_offset + TriVerts.B];
 				tinyobj::index_t idx2 = shapes[s].mesh.indices[index_offset + TriVerts.C];
@@ -110,11 +110,11 @@ bool RTGUtils::ReadOBJMesh(
 
 				if (Normals && Normals->IsElement(idx0.normal_index) && Normals->IsElement(idx1.normal_index) && Normals->IsElement(idx2.normal_index))
 				{
-					Normals->SetTriangle(tid, FIndex3i(idx0.normal_index, idx1.normal_index, idx2.normal_index));
+					Normals->SetTriangle(tid, UE::Geometry::FIndex3i(idx0.normal_index, idx1.normal_index, idx2.normal_index));
 				}
 				if (UVs && UVs->IsElement(idx0.texcoord_index) && UVs->IsElement(idx1.texcoord_index) && UVs->IsElement(idx2.texcoord_index))
 				{
-					UVs->SetTriangle(tid, FIndex3i(idx0.texcoord_index, idx1.texcoord_index, idx2.texcoord_index));
+					UVs->SetTriangle(tid, UE::Geometry::FIndex3i(idx0.texcoord_index, idx1.texcoord_index, idx2.texcoord_index));
 				}
 			}
 

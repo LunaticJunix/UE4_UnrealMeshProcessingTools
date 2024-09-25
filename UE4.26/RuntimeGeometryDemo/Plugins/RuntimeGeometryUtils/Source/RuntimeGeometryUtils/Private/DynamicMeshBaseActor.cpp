@@ -3,9 +3,8 @@
 #include "Generators/SphereGenerator.h"
 #include "Generators/GridBoxMeshGenerator.h"
 #include "MeshQueries.h"
-#include "DynamicMesh3.h"
-#include "MeshNormals.h"
-#include "MeshTransforms.h"
+#include "DynamicMesh/MeshNormals.h"
+#include "DynamicMesh/MeshTransforms.h"
 #include "MeshSimplification.h"
 #include "Operations/MeshBoolean.h"
 #include "Implicit/Solidify.h"
@@ -21,7 +20,7 @@ ADynamicMeshBaseActor::ADynamicMeshBaseActor()
 	AccumulatedTime = 0;
 	MeshAABBTree.SetMesh(&SourceMesh);
 
-	FastWinding = MakeUnique<TFastWindingTree<FDynamicMesh3>>(&MeshAABBTree, false);
+	FastWinding = MakeUnique<UE::Geometry::TFastWindingTree<UE::Geometry::FDynamicMesh3>>(&MeshAABBTree, false);
 }
 
 void ADynamicMeshBaseActor::PostLoad()
@@ -69,7 +68,7 @@ void ADynamicMeshBaseActor::PostEditChangeProperty(FPropertyChangedEvent& Proper
 #endif
 
 
-void ADynamicMeshBaseActor::EditMesh(TFunctionRef<void(FDynamicMesh3&)> EditFunc)
+void ADynamicMeshBaseActor::EditMesh(TFunctionRef<void(UE::Geometry::FDynamicMesh3&)> EditFunc)
 {
 	EditFunc(SourceMesh);
 
@@ -87,12 +86,12 @@ void ADynamicMeshBaseActor::EditMesh(TFunctionRef<void(FDynamicMesh3&)> EditFunc
 }
 
 
-void ADynamicMeshBaseActor::GetMeshCopy(FDynamicMesh3& MeshOut)
+void ADynamicMeshBaseActor::GetMeshCopy(UE::Geometry::FDynamicMesh3& MeshOut)
 {
 	MeshOut = SourceMesh;
 }
 
-const FDynamicMesh3& ADynamicMeshBaseActor::GetMeshRef() const
+const UE::Geometry::FDynamicMesh3& ADynamicMeshBaseActor::GetMeshRef() const
 {
 	return SourceMesh;
 }
@@ -105,13 +104,13 @@ void ADynamicMeshBaseActor::OnMeshEditedInternal()
 
 void ADynamicMeshBaseActor::OnMeshGenerationSettingsModified()
 {
-	EditMesh([this](FDynamicMesh3& MeshToUpdate) {
+	EditMesh([this](UE::Geometry::FDynamicMesh3& MeshToUpdate) {
 		RegenerateSourceMesh(MeshToUpdate);
 	});
 }
 
 
-void ADynamicMeshBaseActor::RegenerateSourceMesh(FDynamicMesh3& MeshOut)
+void ADynamicMeshBaseActor::RegenerateSourceMesh(UE::Geometry::FDynamicMesh3& MeshOut)
 {
 	if (SourceType == EDynamicMeshActorSourceType::Primitive)
 	{
@@ -121,19 +120,19 @@ void ADynamicMeshBaseActor::RegenerateSourceMesh(FDynamicMesh3& MeshOut)
 		// generate new mesh
 		if (this->PrimitiveType == EDynamicMeshActorPrimitiveType::Sphere)
 		{
-			FSphereGenerator SphereGen;
+			UE::Geometry::FSphereGenerator SphereGen;
 			SphereGen.NumPhi = SphereGen.NumTheta = FMath::Clamp(this->TessellationLevel, 3, 50);
 			SphereGen.Radius = UseRadius;
 			MeshOut.Copy(&SphereGen.Generate());
 		}
 		else
 		{
-			FGridBoxMeshGenerator BoxGen;
+			UE::Geometry::FGridBoxMeshGenerator BoxGen;
 			int TessLevel = FMath::Clamp(this->TessellationLevel, 2, 50);
-			BoxGen.EdgeVertices = FIndex3i(TessLevel, TessLevel, TessLevel);
+			BoxGen.EdgeVertices = UE::Geometry::FIndex3i(TessLevel, TessLevel, TessLevel);
 			FVector3d BoxExtents = UseRadius * FVector3d::One();
 			BoxExtents.Z *= BoxDepthRatio;
-			BoxGen.Box = FOrientedBox3d(FVector3d::Zero(), BoxExtents);
+			BoxGen.Box = UE::Geometry::FOrientedBox3d(FVector3d::Zero(), BoxExtents);
 			MeshOut.Copy(&BoxGen.Generate());
 		}
 
@@ -146,11 +145,11 @@ void ADynamicMeshBaseActor::RegenerateSourceMesh(FDynamicMesh3& MeshOut)
 			UsePath = FPaths::ProjectContentDir() + ImportPath;
 		}
 
-		MeshOut = FDynamicMesh3();
+		MeshOut = UE::Geometry::FDynamicMesh3();
 		if ( ! RTGUtils::ReadOBJMesh(UsePath, MeshOut, true, true, true, bReverseOrientation))
 		{
 			UE_LOG(LogTemp, Warning, TEXT("Error reading mesh file %s"), *UsePath);
-			FSphereGenerator SphereGen;
+			UE::Geometry::FSphereGenerator SphereGen;
 			SphereGen.NumPhi = SphereGen.NumTheta = 8;
 			SphereGen.Radius = this->MinimumRadius;
 			MeshOut.Copy(&SphereGen.Generate());
@@ -176,17 +175,17 @@ void ADynamicMeshBaseActor::RegenerateSourceMesh(FDynamicMesh3& MeshOut)
 
 
 
-void ADynamicMeshBaseActor::RecomputeNormals(FDynamicMesh3& MeshOut)
+void ADynamicMeshBaseActor::RecomputeNormals(UE::Geometry::FDynamicMesh3& MeshOut)
 {
 	if (this->NormalsMode == EDynamicMeshActorNormalsMode::PerVertexNormals)
 	{
 		MeshOut.EnableAttributes();
-		FMeshNormals::InitializeOverlayToPerVertexNormals(MeshOut.Attributes()->PrimaryNormals(), false);
+		UE::Geometry::FMeshNormals::InitializeOverlayToPerVertexNormals(MeshOut.Attributes()->PrimaryNormals(), false);
 	}
 	else if (this->NormalsMode == EDynamicMeshActorNormalsMode::FaceNormals)
 	{
 		MeshOut.EnableAttributes();
-		FMeshNormals::InitializeOverlayToPerTriangleNormals(MeshOut.Attributes()->PrimaryNormals());
+		UE::Geometry::FMeshNormals::InitializeOverlayToPerTriangleNormals(MeshOut.Attributes()->PrimaryNormals());
 	}
 }
 
@@ -217,7 +216,7 @@ float ADynamicMeshBaseActor::DistanceToPoint(FVector WorldPoint, FVector& Neares
 		return TNumericLimits<float>::Max();
 	}
 
-	FDistPoint3Triangle3d DistQuery = TMeshQueries<FDynamicMesh3>::TriangleDistance(SourceMesh, NearestTriangle, LocalPoint);
+	UE::Geometry::FDistPoint3Triangle3d DistQuery = UE::Geometry::TMeshQueries<UE::Geometry::FDynamicMesh3>::TriangleDistance(SourceMesh, NearestTriangle, LocalPoint);
 	NearestWorldPoint = (FVector)ActorToWorld.TransformPosition(DistQuery.ClosestTrianglePoint);
 	TriBaryCoords = (FVector)DistQuery.TriangleBaryCoords;
 	return (float)FMathd::Sqrt(NearDistSqr);
@@ -256,8 +255,8 @@ bool ADynamicMeshBaseActor::IntersectRay(FVector RayOrigin, FVector RayDirection
 		FTransform3d ActorToWorld(GetActorTransform());
 		FVector3d WorldDirection(RayDirection); WorldDirection.Normalize();
 		FRay3d LocalRay(ActorToWorld.InverseTransformPosition((FVector3d)RayOrigin),
-			ActorToWorld.InverseTransformNormal(WorldDirection));
-		IMeshSpatial::FQueryOptions QueryOptions;
+			ActorToWorld.InverseTransformVectorNoScale(WorldDirection));
+		UE::Geometry::IMeshSpatial::FQueryOptions QueryOptions;
 		if (MaxDistance > 0)
 		{
 			QueryOptions.MaxDistance = MaxDistance;
@@ -265,7 +264,7 @@ bool ADynamicMeshBaseActor::IntersectRay(FVector RayOrigin, FVector RayDirection
 		NearestTriangle = MeshAABBTree.FindNearestHitTriangle(LocalRay, QueryOptions);
 		if (SourceMesh.IsTriangle(NearestTriangle))
 		{
-			FIntrRay3Triangle3d IntrQuery = TMeshQueries<FDynamicMesh3>::TriangleIntersection(SourceMesh, NearestTriangle, LocalRay);
+			UE::Geometry::FIntrRay3Triangle3d IntrQuery = UE::Geometry::TMeshQueries<UE::Geometry::FDynamicMesh3>::TriangleIntersection(SourceMesh, NearestTriangle, LocalRay);
 			if (IntrQuery.IntersectionType == EIntersectionType::Point)
 			{
 				HitDistance = IntrQuery.RayParameter;
@@ -302,31 +301,31 @@ void ADynamicMeshBaseActor::BooleanWithMesh(ADynamicMeshBaseActor* OtherMeshActo
 	FTransform3d ActorToWorld(GetActorTransform());
 	FTransform3d OtherToWorld(OtherMeshActor->GetActorTransform());
 
-	FDynamicMesh3 OtherMesh;
+	UE::Geometry::FDynamicMesh3 OtherMesh;
 	OtherMeshActor->GetMeshCopy(OtherMesh);
 	MeshTransforms::ApplyTransform(OtherMesh, OtherToWorld);
 	MeshTransforms::ApplyTransformInverse(OtherMesh, ActorToWorld);
 
-	EditMesh([&](FDynamicMesh3& MeshToUpdate) {
+	EditMesh([&](UE::Geometry::FDynamicMesh3& MeshToUpdate) {
 
-		FDynamicMesh3 ResultMesh;
+		UE::Geometry::FDynamicMesh3 ResultMesh;
 
-		FMeshBoolean::EBooleanOp ApplyOp = FMeshBoolean::EBooleanOp::Union;
+		UE::Geometry::FMeshBoolean::EBooleanOp ApplyOp = UE::Geometry::FMeshBoolean::EBooleanOp::Union;
 		switch (Operation)
 		{
 			default:
 				break;
 			case EDynamicMeshActorBooleanOperation::Subtraction:
-				ApplyOp = FMeshBoolean::EBooleanOp::Difference;
+				ApplyOp = UE::Geometry::FMeshBoolean::EBooleanOp::Difference;
 				break;
 			case EDynamicMeshActorBooleanOperation::Intersection:
-				ApplyOp = FMeshBoolean::EBooleanOp::Intersect;
+				ApplyOp = UE::Geometry::FMeshBoolean::EBooleanOp::Intersect;
 				break;
 		}
 
-		FMeshBoolean Boolean(
-			&MeshToUpdate, FTransform3d::Identity(),
-			&OtherMesh, FTransform3d::Identity(),
+		UE::Geometry::FMeshBoolean Boolean(
+			&MeshToUpdate, UE::Geometry::FTransformSRT3d::Identity(),
+			&OtherMesh, UE::Geometry::FTransformSRT3d::Identity(),
 			&ResultMesh,
 			ApplyOp);
 		Boolean.bPutResultInInputSpace = true;
@@ -347,7 +346,7 @@ void ADynamicMeshBaseActor::BooleanWithMesh(ADynamicMeshBaseActor* OtherMeshActo
 
 bool ADynamicMeshBaseActor::ImportMesh(FString Path, bool bFlipOrientation, bool bRecomputeNormals)
 {
-	FDynamicMesh3 ImportedMesh;
+	UE::Geometry::FDynamicMesh3 ImportedMesh;
 	if (!RTGUtils::ReadOBJMesh(Path, ImportedMesh, true, true, true, bFlipOrientation))
 	{
 		UE_LOG(LogTemp, Warning, TEXT("Error reading mesh file %s"), *Path);
@@ -359,7 +358,7 @@ bool ADynamicMeshBaseActor::ImportMesh(FString Path, bool bFlipOrientation, bool
 		RecomputeNormals(ImportedMesh);
 	}
 
-	EditMesh([&](FDynamicMesh3& MeshToUpdate) 
+	EditMesh([&](UE::Geometry::FDynamicMesh3& MeshToUpdate) 
 	{
 		MeshToUpdate = MoveTemp(ImportedMesh);
 	});
@@ -373,7 +372,7 @@ void ADynamicMeshBaseActor::CopyFromMesh(ADynamicMeshBaseActor* OtherMesh, bool 
 	if (! ensure(OtherMesh) ) return;
 
 	// the part where we generate a new mesh
-	FDynamicMesh3 TmpMesh;
+	UE::Geometry::FDynamicMesh3 TmpMesh;
 	OtherMesh->GetMeshCopy(TmpMesh);
 
 	// apply our normals setting
@@ -383,7 +382,7 @@ void ADynamicMeshBaseActor::CopyFromMesh(ADynamicMeshBaseActor* OtherMesh, bool 
 	}
 
 	// update the mesh
-	EditMesh([&](FDynamicMesh3& MeshToUpdate)
+	EditMesh([&](UE::Geometry::FDynamicMesh3& MeshToUpdate)
 	{
 		MeshToUpdate = MoveTemp(TmpMesh);
 	});
@@ -394,7 +393,7 @@ void ADynamicMeshBaseActor::CopyFromMesh(ADynamicMeshBaseActor* OtherMesh, bool 
 
 void ADynamicMeshBaseActor::SolidifyMesh(int VoxelResolution, float WindingThreshold)
 {
-	if (MeshAABBTree.IsValid() == false)
+	if (MeshAABBTree.IsValid(false) == false)
 	{
 		MeshAABBTree.Build();
 	}
@@ -404,26 +403,26 @@ void ADynamicMeshBaseActor::SolidifyMesh(int VoxelResolution, float WindingThres
 	}
 
 	// ugh workaround for bug
-	FDynamicMesh3 CompactMesh;
+	UE::Geometry::FDynamicMesh3 CompactMesh;
 	CompactMesh.CompactCopy(SourceMesh, false, false, false, false);
-	FDynamicMeshAABBTree3 AABBTree(&CompactMesh, true);
-	TFastWindingTree<FDynamicMesh3> Winding(&AABBTree, true);
+	UE::Geometry::FDynamicMeshAABBTree3 AABBTree(&CompactMesh, true);
+	UE::Geometry::TFastWindingTree<UE::Geometry::FDynamicMesh3> Winding(&AABBTree, true);
 
 	double ExtendBounds = 2.0;
-	//TImplicitSolidify<FDynamicMesh3> SolidifyCalc(&SourceMesh, &MeshAABBTree, FastWinding.Get());
+	//TImplicitSolidify<UE::Geometry::FDynamicMesh3> SolidifyCalc(&SourceMesh, &MeshAABBTree, FastWinding.Get());
 	//SolidifyCalc.SetCellSizeAndExtendBounds(MeshAABBTree.GetBoundingBox(), ExtendBounds, VoxelResolution);
-	TImplicitSolidify<FDynamicMesh3> SolidifyCalc(&CompactMesh, &AABBTree, &Winding);
+	UE::Geometry::TImplicitSolidify<UE::Geometry::FDynamicMesh3> SolidifyCalc(&CompactMesh, &AABBTree, &Winding);
 	SolidifyCalc.SetCellSizeAndExtendBounds(AABBTree.GetBoundingBox(), ExtendBounds, VoxelResolution);
 	SolidifyCalc.WindingThreshold = WindingThreshold;
 	SolidifyCalc.SurfaceSearchSteps = 5;
 	SolidifyCalc.bSolidAtBoundaries = true;
 	SolidifyCalc.ExtendBounds = ExtendBounds;
-	FDynamicMesh3 SolidMesh(&SolidifyCalc.Generate());
+	UE::Geometry::FDynamicMesh3 SolidMesh(&SolidifyCalc.Generate());
 
 	SolidMesh.EnableAttributes();
 	RecomputeNormals(SolidMesh);
 
-	EditMesh([&](FDynamicMesh3& MeshToUpdate)
+	EditMesh([&](UE::Geometry::FDynamicMesh3& MeshToUpdate)
 	{
 		MeshToUpdate = MoveTemp(SolidMesh);
 	});
@@ -435,15 +434,15 @@ void ADynamicMeshBaseActor::SimplifyMeshToTriCount(int32 TargetTriangleCount)
 	if (TargetTriangleCount >= SourceMesh.TriangleCount()) return;
 
 	// make compacted copy because it seems to change the results?
-	FDynamicMesh3 SimplifyMesh;
+	UE::Geometry::FDynamicMesh3 SimplifyMesh;
 	SimplifyMesh.CompactCopy(SourceMesh, false, false, false, false);
 	SimplifyMesh.EnableTriangleGroups();			// workaround for failing check()
-	FQEMSimplification Simplifier(&SimplifyMesh);
+	UE::Geometry::FQEMSimplification Simplifier(&SimplifyMesh);
 	Simplifier.SimplifyToTriangleCount(TargetTriangleCount);
 	SimplifyMesh.EnableAttributes();
 	RecomputeNormals(SimplifyMesh);
 
-	EditMesh([&](FDynamicMesh3& MeshToUpdate)
+	EditMesh([&](UE::Geometry::FDynamicMesh3& MeshToUpdate)
 	{
 		MeshToUpdate.CompactCopy(SimplifyMesh);
 	});

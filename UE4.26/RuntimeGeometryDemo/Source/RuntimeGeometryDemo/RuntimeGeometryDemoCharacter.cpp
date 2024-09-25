@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RuntimeGeometryDemoCharacter.h"
-#include "HeadMountedDisplayFunctionLibrary.h"
+//#include "HeadMountedDisplayFunctionLibrary.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "Components/InputComponent.h"
@@ -81,7 +81,7 @@ void ARuntimeGeometryDemoCharacter::SetupPlayerInputComponent(class UInputCompon
 
 void ARuntimeGeometryDemoCharacter::OnResetVR()
 {
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
+	//UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
 }
 
 void ARuntimeGeometryDemoCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)

@@ -1,5 +1,5 @@
 #include "DynamicMeshOBJWriter.h"
-#include "DynamicMeshAttributeSet.h"
+#include "DynamicMesh/DynamicMeshAttributeSet.h"
 #include "DynamicMeshEditor.h"
 
 #include <fstream>
@@ -16,7 +16,7 @@ public:
 	TFunction<void()> CloseFile = [this]() { FileOut.close(); };
 	TFunction<void(const TCHAR*)> WriteLine = [this](const TCHAR* Line) { FileOut << TCHAR_TO_ANSI(Line) << std::endl; };
 
-	bool Write(const char* OutputPath, const FDynamicMesh3& Mesh)
+	bool Write(const char* OutputPath, const UE::Geometry::FDynamicMesh3& Mesh)
 	{
 		if (!OpenFile(OutputPath))
 		{
@@ -31,7 +31,7 @@ public:
 		}
 
 		int32 NumUVs = 0;
-		const FDynamicMeshUVOverlay* UVs = nullptr;
+		const UE::Geometry::FDynamicMeshUVOverlay* UVs = nullptr;
 		if (Mesh.Attributes() && Mesh.Attributes()->PrimaryUV())
 		{
 			UVs = Mesh.Attributes()->PrimaryUV();
@@ -44,7 +44,7 @@ public:
 		}
 
 		int32 NumNormals = 0;
-		const FDynamicMeshNormalOverlay* Normals = nullptr;
+		const UE::Geometry::FDynamicMeshNormalOverlay* Normals = nullptr;
 		if (Mesh.Attributes() && Mesh.Attributes()->PrimaryNormals())
 		{
 			Normals = Mesh.Attributes()->PrimaryNormals();
@@ -94,9 +94,9 @@ public:
 
 			int32 ti = MeshTri.Index;
 
-			FIndex3i TriVertices = Mesh.GetTriangle(ti);
-			FIndex3i TriUVs = (NumUVs > 0) ? UVs->GetTriangle(ti) : FIndex3i::Invalid();
-			FIndex3i TriNormals = (NumNormals > 0) ? Normals->GetTriangle(ti) : FIndex3i::Invalid();
+			UE::Geometry::FIndex3i TriVertices = Mesh.GetTriangle(ti);
+			UE::Geometry::FIndex3i TriUVs = (NumUVs > 0) ? UVs->GetTriangle(ti) : UE::Geometry::FIndex3i::Invalid();
+			UE::Geometry::FIndex3i TriNormals = (NumNormals > 0) ? Normals->GetTriangle(ti) : UE::Geometry::FIndex3i::Invalid();
 
 			bool bHaveUV = (NumUVs != 0) && UVs->IsSetTriangle(ti);
 			bool bHaveNormal = (NumNormals != 0) && Normals->IsSetTriangle(ti);
@@ -134,12 +134,12 @@ public:
 
 bool RTGUtils::WriteOBJMesh(
 	const FString& OutputPath,
-	const FDynamicMesh3& Mesh,
+	const UE::Geometry::FDynamicMesh3& Mesh,
 	bool bReverseOrientation)
 {
-	const FDynamicMesh3* WriteMesh = &Mesh;
+	const UE::Geometry::FDynamicMesh3* WriteMesh = &Mesh;
 
-	FDynamicMesh3 CopyMesh;
+	UE::Geometry::FDynamicMesh3 CopyMesh;
 	if (bReverseOrientation)
 	{
 		CopyMesh = Mesh;
@@ -156,13 +156,13 @@ bool RTGUtils::WriteOBJMesh(
 
 bool RTGUtils::WriteOBJMeshes(
 	const FString& OutputPath,
-	const TArray<FDynamicMesh3>& Meshes,
+	const TArray<UE::Geometry::FDynamicMesh3>& Meshes,
 	bool bReverseOrientation)
 {
-	FDynamicMesh3 CombinedMesh;
-	FDynamicMeshEditor Editor(&CombinedMesh);
+	UE::Geometry::FDynamicMesh3 CombinedMesh;
+	UE::Geometry::FDynamicMeshEditor Editor(&CombinedMesh);
 
-	for (const FDynamicMesh3& Mesh : Meshes)
+	for (const UE::Geometry::FDynamicMesh3& Mesh : Meshes)
 	{
 		if (Mesh.HasTriangleGroups())
 		{
@@ -173,7 +173,7 @@ bool RTGUtils::WriteOBJMeshes(
 			CombinedMesh.EnableAttributes();
 		}
 
-		FMeshIndexMappings Mappings;
+		UE::Geometry::FMeshIndexMappings Mappings;
 		Editor.AppendMesh(&Mesh, Mappings);
 	}
 

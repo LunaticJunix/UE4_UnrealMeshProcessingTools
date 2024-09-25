@@ -1,11 +1,11 @@
 #include "DynamicSDMCActor.h"
-#include "DynamicMesh3.h"
+#include "DynamicMesh/DynamicMesh3.h"
 
 
 // Sets default values
 ADynamicSDMCActor::ADynamicSDMCActor()
 {
-	MeshComponent = CreateDefaultSubobject<USimpleDynamicMeshComponent>(TEXT("MeshComponent"), false);
+	MeshComponent = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("MeshComponent"), false);
 	SetRootComponent(MeshComponent);
 }
 

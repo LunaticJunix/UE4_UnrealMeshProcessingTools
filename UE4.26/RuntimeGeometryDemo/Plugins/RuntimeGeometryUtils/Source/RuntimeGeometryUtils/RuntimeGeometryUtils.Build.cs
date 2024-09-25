@@ -26,16 +26,16 @@ public class RuntimeGeometryUtils : ModuleRules
 			new string[]
 			{
 				"Core",
-				"GeometricObjects",
-				"DynamicMesh",
+                "GeometryCore",
+                "GeometryFramework",
+                "DynamicMesh",
 				"ProceduralMeshComponent",
-				"ModelingComponents"
+				"ModelingComponents",
 				// ... add other public dependencies that you statically link with here ...
-			}
-			);
-			
-		
-		PrivateDependencyModuleNames.AddRange(
+            }
+            );
+
+        PrivateDependencyModuleNames.AddRange(
 			new string[]
 			{
 				"CoreUObject",

@@ -2,8 +2,8 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "DynamicMesh3.h"
-#include "DynamicMeshAABBTree3.h"
+#include "DynamicMesh/DynamicMesh3.h"
+#include "DynamicMesh/DynamicMeshAABBTree3.h"
 #include "Spatial/FastWinding.h"
 #include "DynamicMeshBaseActor.generated.h"
 
@@ -183,17 +183,17 @@ public:
 	 * and you are expected to pass back the new/modified version.
 	 * (If you are generating an entirely new mesh, MoveTemp can be used to do this without a copy)
 	 */
-	virtual void EditMesh(TFunctionRef<void(FDynamicMesh3&)> EditFunc);
+	virtual void EditMesh(TFunctionRef<void(UE::Geometry::FDynamicMesh3&)> EditFunc);
 
 	/**
 	 * Get a copy of the current SourceMesh stored in MeshOut
 	 */
-	virtual void GetMeshCopy(FDynamicMesh3& MeshOut);
+	virtual void GetMeshCopy(UE::Geometry::FDynamicMesh3& MeshOut);
 
 	/**
 	 * Get a reference to the current SourceMesh
 	 */
-	virtual const FDynamicMesh3& GetMeshRef() const;
+	virtual const UE::Geometry::FDynamicMesh3& GetMeshRef() const;
 
 
 	/**
@@ -205,7 +205,7 @@ public:
 protected:
 
 	/** The SourceMesh used to initialize the mesh Components in the various subclasses */
-	FDynamicMesh3 SourceMesh;
+	UE::Geometry::FDynamicMesh3 SourceMesh;
 
 	/** Accumulated time since Actor was created, this is used for the animated primitives when bRegenerateOnTick = true*/
 	double AccumulatedTime = 0;
@@ -214,10 +214,10 @@ protected:
 	virtual void OnMeshGenerationSettingsModified();
 
 	/** Called to generate or import a new source mesh. Override this to provide your own generated mesh. */
-	virtual void RegenerateSourceMesh(FDynamicMesh3& MeshOut);
+	virtual void RegenerateSourceMesh(UE::Geometry::FDynamicMesh3& MeshOut);
 
 	/** Call this on a Mesh to compute normals according to the NormalsMode setting */
-	virtual void RecomputeNormals(FDynamicMesh3& MeshOut);
+	virtual void RecomputeNormals(UE::Geometry::FDynamicMesh3& MeshOut);
 
 
 
@@ -234,9 +234,9 @@ public:
 
 protected:
 	// This AABBTree is updated each time SourceMesh is modified if bEnableSpatialQueries=true or bEnableInsideQueries=true
-	FDynamicMeshAABBTree3 MeshAABBTree;
+	UE::Geometry::FDynamicMeshAABBTree3 MeshAABBTree;
 	// This FastWindingTree is updated each time SourceMesh is modified if bEnableInsideQueries=true
-	TUniquePtr<TFastWindingTree<FDynamicMesh3>> FastWinding;
+	TUniquePtr<UE::Geometry::TFastWindingTree<UE::Geometry::FDynamicMesh3>> FastWinding;
 
 
 	//
