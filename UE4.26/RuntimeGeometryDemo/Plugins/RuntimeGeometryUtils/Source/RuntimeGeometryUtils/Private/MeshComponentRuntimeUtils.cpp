@@ -4,6 +4,7 @@
 #include "DynamicMesh/MeshNormals.h"
 
 #include "DynamicMeshToMeshDescription.h"
+#include "MeshDescriptionToDynamicMesh.h"
 #include "StaticMeshAttributes.h"
 
 
@@ -31,6 +32,19 @@ void RTGUtils::UpdateStaticMeshFromDynamicMesh(
 	TArray<const FMeshDescription*> MeshDescriptionPtrs;
 	MeshDescriptionPtrs.Emplace(&MeshDescription);
 	StaticMesh->BuildFromMeshDescriptions(MeshDescriptionPtrs);
+}
+
+
+
+
+
+void RTGUtils::UpdateStaticMeshToDynamicMesh(
+	UStaticMesh* InStaticMesh,
+	UE::Geometry::FDynamicMesh3* OutMesh)
+{
+	FMeshDescription* MeshDescription = InStaticMesh->GetMeshDescription(0);
+	FMeshDescriptionToDynamicMesh Converter;
+	Converter.Convert(MeshDescription, *OutMesh, true);
 }
 
 

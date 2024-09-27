@@ -21,6 +21,16 @@ namespace RTGUtils
 
 
 	/**
+	 * Reinitialize the given FDynamicMesh3 with the input StaticMesh.
+	 * This calls UKismetProceduralMeshLibrary::GetSectionFromStaticMesh(), which can be used at Runtime
+	 */
+	RUNTIMEGEOMETRYUTILS_API void UpdateStaticMeshToDynamicMesh(
+		UStaticMesh* InStaticMesh,
+		UE::Geometry::FDynamicMesh3* OutMesh);
+
+
+
+	/**
 	 * Initialize a ProceduralMeshComponent with a single section defined by the given FDynamicMesh3.
 	 * @param bUseFaceNormals if true, each triangle is shaded with per-triangle normal instead of split-vertex normals from FDynamicMesh3 overlay
 	 * @param bInitializeUV0 if true, UV0 is initialized, otherwise it is not (set to 0)
